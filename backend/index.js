@@ -15,7 +15,7 @@ app.get('/ping',(req,res)=>{
     res.send("pingform")
 });
 const corsOptions = {
-    origin: ["", "http://localhost:3000"], // URL of your React frontend
+    origin: ["https://link-management-platform-frontend.vercel.app", "http://localhost:3000"], // URL of your React frontend
     methods: ["GET", "POST", "PUT", "DELETE"], // HTTP methods allowed
     allowedHeaders: ["Content-Type", "Authorization"],
   };
