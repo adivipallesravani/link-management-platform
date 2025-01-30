@@ -1,4 +1,4 @@
-const Analytics = require("../models/Analytics");
+const Analytics = require("../models/analytics");
 
 // Get all analytics data
 const getAllAnalytics = async (req, res) => {
