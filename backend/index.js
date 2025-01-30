@@ -11,7 +11,9 @@ dotenv.config();
 connectDB();
 
 const app = express();
-
+app.get('/ping',(req,res)=>{
+    res.send("pingform")
+});
 const corsOptions = {
     origin: ["", "http://localhost:3000"], // URL of your React frontend
     methods: ["GET", "POST", "PUT", "DELETE"], // HTTP methods allowed

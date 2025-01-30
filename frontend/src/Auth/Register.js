@@ -5,7 +5,7 @@ const MAIN_URL =
   process.env.NODE_ENV === "development"
     ? process.env.REACT_APP_LOCAL_URL
     : process.env.REACT_APP_PRODUCTION_URL;
-
+    console.log(MAIN_URL);
 const Register = () => {
     // State to manage form data
     const [formData, setFormData] = useState({
@@ -45,7 +45,7 @@ const Register = () => {
 
         try {
             // Send data to the backend
-            const response = await axios.post("http://localhost:5000/auth/register",formData);
+            const response = await axios.post(`${MAIN_URL}/auth/register`,formData);
               console.log(response)
             // Success response
             alert("User registered successfully!");
