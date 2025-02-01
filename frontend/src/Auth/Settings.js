@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Settings.css";
 import { useNavigate } from "react-router-dom";
+
 const MAIN_URL =
   process.env.NODE_ENV === "development"
     ? process.env.REACT_APP_LOCAL_URL
     : process.env.REACT_APP_PRODUCTION_URL;
-    console.log(MAIN_URL);
 
 const Settings = () => {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [mobile, setMobile] = useState("");
-    const [showDeletePopup, setShowDeletePopup] = useState(false);
-    const [showSavePopup, setShowSavePopup] = useState(false);
+    const [userData, setUserData] = useState({ name: "", email: "", mobile: "" });
+    const [originalData, setOriginalData] = useState({});
     const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
             alert("You are not logged in.");
-            navigate("/login"); // Redirect to login if not logged in
+            navigate("/login");
         }
     }, [navigate]);
+
+    const handleInputChange = (e) => {
+        setUserData({ ...userData, [e.target.name]: e.target.value });
+    };
 
     const handleSaveChanges = () => {
         const token = localStorage.getItem("token");
@@ -29,156 +30,107 @@ const Settings = () => {
             alert("You are not logged in.");
             return;
         }
-    
-        const url = `${MAIN_URL}/auth/update-user`; // Ensure this URL is correct
-        console.log("Making PUT request to:", url);
-        console.log("Authorization header:", `Bearer ${token}`);
-    
-        fetch(url, {
+
+        const updatedFields = {};
+        Object.keys(userData).forEach(key => {
+            if (userData[key] !== originalData[key]) {
+                updatedFields[key] = userData[key];
+            }
+        });
+
+        if (Object.keys(updatedFields).length === 0) {
+            alert("No changes made.");
+            return;
+        }
+
+        fetch(`${MAIN_URL}/auth/update-user`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ name, email, mobile }),
+            body: JSON.stringify(updatedFields),
         })
-            .then((response) => {
-                if (!response.ok) {
-                    return response.text().then((text) => {
-                        throw new Error(text || `HTTP error! status: ${response.status}`);
-                    });
-                }
-                return response.json();
-            })
-            .then((data) => {
-                console.log("User updated:", data);
+            .then(response => response.json())
+            .then(data => {
                 alert("Changes saved successfully!");
+                setOriginalData(userData);
             })
-            .catch((error) => {
-                console.error("Error:", error);
-                alert(`Failed to save changes: ${error.message}`);
+            .catch(error => {
+                console.error("Error updating user:", error);
+                alert("Failed to save changes.");
             });
     };
-    
+
     const handleDeleteAccount = () => {
         const token = localStorage.getItem("token");
         if (!token) {
             alert("You are not logged in.");
             return;
         }
-    
-        const url = `${MAIN_URL}/auth/delete-user`; // Ensure this URL is correct
-        console.log("Making DELETE request to:", url);
-        console.log("Authorization header:", `Bearer ${token}`);
-    
-        fetch(url, {
+
+        if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+            return;
+        }
+
+        fetch(`${MAIN_URL}/auth/delete-user`, {
             method: "DELETE",
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         })
-            .then((response) => {
-                if (!response.ok) {
-                    return response.text().then((text) => {
-                        throw new Error(text || `HTTP error! status: ${response.status}`);
-                    });
-                }
-                return response.json();
+            .then(response => response.json())
+            .then(() => {
+                alert("Account deleted successfully.");
+                localStorage.clear();
+                navigate("/login");
             })
-            .then((data) => {
-                console.log("Account deleted:", data);
-                alert("Account deleted successfully!");
-                localStorage.removeItem("token"); // Clear token after account deletion
-                navigate("/login"); // Redirect to login page after deletion
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                alert(`Failed to delete account: ${error.message}`);
+            .catch(error => {
+                console.error("Error deleting account:", error);
+                alert("Failed to delete account.");
             });
     };
-    
+
     return (
         <div className="settings-container">
-         
             <form onSubmit={(e) => e.preventDefault()}>
-                <label>
-                    Name
+                <div className="form-group">
+                    <label className="form-label">Name</label>
                     <input
                         type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        name="name"
+                        value={userData.name}
+                        onChange={handleInputChange}
                         placeholder="Enter your name"
                     />
-                </label>
-                <label>
-                    Email
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Email</label>
                     <input
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        name="email"
+                        value={userData.email}
+                        onChange={handleInputChange}
                         placeholder="Enter your email"
                     />
-                </label>
-                <label>
-                    Mobile
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Mobile</label>
                     <input
                         type="tel"
-                        value={mobile}
-                        onChange={(e) => setMobile(e.target.value)}
+                        name="mobile"
+                        value={userData.mobile}
+                        onChange={handleInputChange}
                         placeholder="Enter your mobile number"
                     />
-                </label>
-                <button
-                    type="button"
-                    className="save-button"
-                    onClick={() => setShowSavePopup(true)}
-                >
+                </div>
+                <button type="button" className="save-button" onClick={handleSaveChanges}>
                     Save Changes
                 </button>
-                <button
-                    type="button"
-                    className="delete-button"
-                    onClick={() => setShowDeletePopup(true)}
-                >
+                <button type="button" className="delete-button" onClick={handleDeleteAccount}>
                     Delete Account
                 </button>
             </form>
-
-            {showSavePopup && (
-                <div className="popup-container">
-                    <div className="popup">
-                        <p>Are you sure you want to save the changes?</p>
-                        <button onClick={() => setShowSavePopup(false)}>No</button>
-                        <button
-                            onClick={() => {
-                                handleSaveChanges();
-                                setShowSavePopup(false);
-                            }}
-                        >
-                            Yes
-                        </button>
-                    </div>
-                    <div className="popup-overlay" onClick={() => setShowSavePopup(false)}></div>
-                </div>
-            )}
-
-            {showDeletePopup && (
-                <div className="popup-container">
-                    <div className="popup">
-                        <p>Are you sure you want to delete the account?</p>
-                        <button onClick={() => setShowDeletePopup(false)}>No</button>
-                        <button
-                            onClick={() => {
-                                handleDeleteAccount();
-                                setShowDeletePopup(false);
-                            }}
-                        >
-                            Yes
-                        </button>
-                    </div>
-                    <div className="popup-overlay" onClick={() => setShowDeletePopup(false)}></div>
-                </div>
-            )}
         </div>
     );
 };

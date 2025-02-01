@@ -167,7 +167,7 @@ const getDeviceType = (userAgent) => {
               os: getOS(userAgent),
               browser: getBrowser(userAgent),
               originalLink: link.originalLink,  // Store the original link
-              shortLinkId: `${req.protocol}://${req.get("host")}/${link.shortLinkId}`,  // Store the short link
+              shortLink: `${req.protocol}://${req.get("host")}/${link.shortLinkId}`,  // Store the short link
           });
   
           // Log the analytics data before saving it
