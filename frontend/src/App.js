@@ -32,7 +32,7 @@ const App = () => {
             element={<Dashboard links={links} setLinks={setLinks} />}
           />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Register />} />
           
           <Route
             path="/analytics"

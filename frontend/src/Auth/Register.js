@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "../styles/Auth.css";
+import { useNavigate } from "react-router-dom";
+ 
 import axios from "axios";
 const MAIN_URL =
   process.env.NODE_ENV === "development"
@@ -8,6 +10,7 @@ const MAIN_URL =
     console.log(MAIN_URL);
 const Register = () => {
     // State to manage form data
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -49,6 +52,8 @@ const Register = () => {
               console.log(response)
             // Success response
             alert("User registered successfully!");
+            navigate("/login")
+ 
             setErrorMessage(""); // Clear error message
             setFormData({
                 name: "",

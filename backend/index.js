@@ -23,8 +23,9 @@ const corsOptions = {
    
 
 // Middleware
-app.use(cors(corsOptions));
+
 app.use(bodyParser.json());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/auth", userRoutes);
