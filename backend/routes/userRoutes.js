@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const User = require("../models/user"); // Import User model
 const authenticate = require("../middleware/authMiddleware"); // Middleware for route protection
-const { generateToken } = require("../utils/jwtUtils"); // Import token generator
+
 const { registerUser, loginUser, updateUser, deleteUser } = require("../controllers/userControllers");
 
 // Register user

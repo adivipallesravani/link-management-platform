@@ -1,22 +1,17 @@
 const jwt = require("jsonwebtoken");
-
 const authenticate = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const token = req.header("Authorization") && req.header("Authorization").split(" ")[1]; // Extract token
+    if (!token) {
         return res.status(401).json({ message: "Unauthorized access! Token missing or malformed." });
     }
 
-    const token = authHeader.split(" ")[1];
-
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Add user info from token to the request
-        next();
+        req.user = decoded; // Attach user to the request object
+        next(); // Continue to the next middleware or route handler
     } catch (error) {
-        console.error("Authentication Error:", error.message);
-        return res.status(403).json({ message: "Invalid or expired token!" });
+        console.error("JWT Error:", error);
+        return res.status(401).json({ message: "Unauthorized access! Token invalid or expired." });
     }
 };
-
 module.exports = authenticate;

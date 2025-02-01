@@ -1,25 +1,18 @@
 const express = require("express");
-const Link = require("../models/storingLink");
-const {
-  getAllLinks,
-  createShortLink,
-  getShortLink,
-} = require("../controllers/linkController"); // ✅ Ensure correct path
+const { createShortLink, getAllLinks, updateLink, deleteLink } = require("../controllers/linkController");
+
+const authenticate = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-    try {
-      const links = await Link.find(); // Fetch all links
-      res.json({ links });
-    } catch (error) {
-      console.error("Error fetching links:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  });
+// Create a short link
+router.post("/create", authenticate, createShortLink);
+router.get("/links", authenticate, getAllLinks);
+router.put("/links/:id", authenticate, updateLink);
+router.delete("/links/:id", authenticate, deleteLink);
+
+
+
+ 
   
-router.post("/create", createShortLink); // ✅ Ensure function exists
-router.get("/:shortLinkId", getShortLink);
-
-
 module.exports = router;

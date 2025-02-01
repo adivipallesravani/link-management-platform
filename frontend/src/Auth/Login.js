@@ -9,7 +9,7 @@ const MAIN_URL =
     console.log(MAIN_URL);
 
 const Login = () => {
-    const [formData, setFormData] = useState({ email: "", password: "" });
+    const [formData, setFormData] = useState({ email: "", password: ""});
     const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
 
@@ -23,10 +23,14 @@ const Login = () => {
         try {
             console.log("Submitting login data:", formData);
             const response = await axios.post(`${MAIN_URL}/auth/login`, formData);
-    
+    console.log("response",response)
             const token = response.data.token;
+            const name=response.data.user.name;
+         
             if (token) {
                 localStorage.setItem("token", token); // Save token in localStorage
+                localStorage.setItem("name", name);
+                console.log("name saved to localStorage:", localStorage.getItem("name"));
                 console.log("Token saved to localStorage:", localStorage.getItem("token"));
                 alert("Login successful!");
                 navigate("/dashboard");

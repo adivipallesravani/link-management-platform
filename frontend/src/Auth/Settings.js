@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Settings.css";
 import { useNavigate } from "react-router-dom";
+const MAIN_URL =
+  process.env.NODE_ENV === "development"
+    ? process.env.REACT_APP_LOCAL_URL
+    : process.env.REACT_APP_PRODUCTION_URL;
+    console.log(MAIN_URL);
 
 const Settings = () => {
     const [name, setName] = useState("");
@@ -25,7 +30,7 @@ const Settings = () => {
             return;
         }
     
-        const url = "http://localhost:5000/auth/update-user"; // Ensure this URL is correct
+        const url = `${MAIN_URL}/auth/update-user`; // Ensure this URL is correct
         console.log("Making PUT request to:", url);
         console.log("Authorization header:", `Bearer ${token}`);
     
@@ -62,7 +67,7 @@ const Settings = () => {
             return;
         }
     
-        const url = "http://localhost:5000/auth/delete-user"; // Ensure this URL is correct
+        const url = `${MAIN_URL}/auth/delete-user`; // Ensure this URL is correct
         console.log("Making DELETE request to:", url);
         console.log("Authorization header:", `Bearer ${token}`);
     
@@ -94,10 +99,10 @@ const Settings = () => {
     
     return (
         <div className="settings-container">
-            <h2>Settings</h2>
+         
             <form onSubmit={(e) => e.preventDefault()}>
                 <label>
-                    Name:
+                    Name
                     <input
                         type="text"
                         value={name}
@@ -106,7 +111,7 @@ const Settings = () => {
                     />
                 </label>
                 <label>
-                    Email:
+                    Email
                     <input
                         type="email"
                         value={email}
@@ -115,7 +120,7 @@ const Settings = () => {
                     />
                 </label>
                 <label>
-                    Mobile:
+                    Mobile
                     <input
                         type="tel"
                         value={mobile}

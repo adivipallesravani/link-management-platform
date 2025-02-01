@@ -1,105 +1,114 @@
-import React, { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSortUp, faSortDown } from "@fortawesome/free-solid-svg-icons";
-import "../styles/Analytics.css";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+const MAIN_URL =
+  process.env.NODE_ENV === "development"
+    ? process.env.REACT_APP_LOCAL_URL
+    : process.env.REACT_APP_PRODUCTION_URL;
+    console.log(MAIN_URL);
 
 const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortOrder, setSortOrder] = useState({ timestamp: "desc" });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10; // Set items per page
 
-  const linksPerPage = 5;
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/analytics/");
-        if (!response.ok) throw new Error("Failed to fetch analytics data");
-        const data = await response.json();
-        setAnalyticsData(data);
-      } catch (error) {
-        console.error("Error fetching analytics:", error);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required");
+        setLoading(false);
+        return;
       }
-    };
-
-    fetchAnalytics();
-  }, []);
-
-  const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  };
-
-  const sortByField = (field) => {
-    const newOrder = sortOrder[field] === "asc" ? "desc" : "asc";
-    const sortedData = [...analyticsData].sort((a, b) => {
-      return newOrder === "asc"
-        ? new Date(a[field]) - new Date(b[field])
-        : new Date(b[field]) - new Date(a[field]);
-    });
-
-    setSortOrder({ [field]: newOrder });
-    setAnalyticsData(sortedData);
-  };
-
-  const totalPages = Math.ceil(analyticsData.length / linksPerPage);
-  const currentAnalytics = analyticsData.slice(
-    (currentPage - 1) * linksPerPage,
-    currentPage * linksPerPage
-  );
+  
+      try {
+        const response = await axios.get(`${MAIN_URL}/analytics?page=${page}&limit=${limit}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        if (response.data && Array.isArray(response.data.data)) {
+          setAnalyticsData(response.data.data);
+          setTotalPages(response.data.totalPages || 1);
+        } else {
+          setAnalyticsData([]); 
+        }
+      } catch (err) {
+        setError("Failed to fetch analytics data");
+        setAnalyticsData([]); 
+      } finally {
+        setLoading(false);
+      }
+    }; 
+  
+    fetchAnalytics(); // ✅ Call the function inside useEffect
+  }, [page]); // ✅ Add page as a dependency so it re-fetches data when the page changes
+  
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div className="analytics-section">
-      <h2>Analytics</h2>
-      <table className="analytics-table">
-        <thead>
-          <tr>
-            <th onClick={() => sortByField("timestamp")} style={{ cursor: "pointer" }}>
-              Timestamp{" "}
-              <FontAwesomeIcon icon={faSortUp} className={sortOrder.timestamp === "asc" ? "active" : ""} />
-              <FontAwesomeIcon icon={faSortDown} className={sortOrder.timestamp === "desc" ? "active" : ""} />
-            </th>
-            <th>Original Link</th>
-            <th>Short Link</th>
-            <th>IP Address</th>
-            <th>User Device</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentAnalytics.map((analytics) => (
-            <tr key={analytics._id}>
-              <td>{formatTimestamp(analytics.timestamp)}</td>
-              <td>{analytics.originalLink}</td>
-              <td>
-                <a href={`http://localhost:5000/api/links/${analytics.shortLinkId}`} target="_blank" rel="noopener noreferrer">
-                  {analytics.shortLinkId}
-                </a>
-              </td>
-              <td>{analytics.ipAddress}</td>
-              <td>{analytics.userDevice}</td>
+    <div className="p-4">
+      <h2 className="text-xl font-semibold mb-4">Analytics</h2>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border px-4 py-2">Timestamp</th>
+              <th className="border px-4 py-2">Original Link</th>
+              <th className="border px-4 py-2">Short Link</th>
+              <th className="border px-4 py-2">IP Address</th>
+              <th className="border px-4 py-2">Device</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {analyticsData.length > 0 ? (
+              analyticsData.map((data) => (
+                <tr key={data._id} className="text-center">
+                  <td className="border px-4 py-2">{new Date(data.timestamp).toLocaleString()}</td>
+                  <td className="border px-4 py-2">
+                    <a href={data.originalLink} className="text-blue-500" target="_blank" rel="noopener noreferrer">
+                      {data.originalLink}
+                    </a>
+                  </td>
+                  <td className="border px-4 py-2">
+                    <a href={`${MAIN_URL}/api/${data.shortLink}`} className="text-blue-500" target="_blank" rel="noopener noreferrer">
+                      {data.shortLink}
+                    </a>
+                  </td>
+                  <td className="border px-4 py-2">{data.ipAddress}</td>
+                  <td className="border px-4 py-2">{data.device}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="border px-4 py-2 text-center">
+                  No analytics data available.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>
-          &lt;
+      {/* Pagination Controls */}
+      <div className="mt-4 flex justify-center space-x-4">
+        <button
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+          className={`px-4 py-2 rounded-md ${page === 1 ? "bg-gray-300" : "bg-blue-500 text-white hover:bg-blue-700"}`}
+        >
+          Previous
         </button>
-        {Array.from({ length: totalPages }, (_, index) => (
-          <button key={index + 1} className={currentPage === index + 1 ? "active" : ""} onClick={() => setCurrentPage(index + 1)}>
-            {index + 1}
-          </button>
-        ))}
-        <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
-          &gt;
+        <span className="px-4 py-2">Page {page} of {totalPages}</span>
+        <button
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+          className={`px-4 py-2 rounded-md ${page === totalPages ? "bg-gray-300" : "bg-blue-500 text-white hover:bg-blue-700"}`}
+        >
+          Next
         </button>
       </div>
     </div>
