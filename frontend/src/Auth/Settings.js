@@ -35,7 +35,7 @@ const Settings = () => {
         })
         .catch((error) => {
             console.error("Error fetching user data:", error);
-            alert("Failed to fetch user data.");
+           
         });
     }, [navigate]);
 
