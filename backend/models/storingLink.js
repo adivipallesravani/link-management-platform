@@ -11,6 +11,6 @@ const linkSchema = new Schema({
   status: { type: String, default: "active" },
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   analytics: [{ type: Schema.Types.ObjectId, ref: 'Analytics' }]
-});
+}, { versionKey: false });
 
 module.exports = mongoose.model('Link', linkSchema);

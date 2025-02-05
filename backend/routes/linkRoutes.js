@@ -5,7 +5,7 @@ const authenticate = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Create a short link
+
 router.post("/create", authenticate, createShortLink);
 router.get("/links", authenticate, getAllLinks);
 router.put("/links/:id", authenticate, updateLink);

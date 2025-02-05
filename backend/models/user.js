@@ -27,9 +27,19 @@ const userSchema = new mongoose.Schema({
         required: [true, "Password is required"],
         minlength: [6, "Password must be at least 6 characters long"],
     },
+    modifiedAt: {
+        type: Date,
+        default: Date.now
+    }
 });
 
-
+// Middleware to update `modifiedAt` before saving
+userSchema.pre('save', function(next) {
+    if (this.isModified()) {
+        this.modifiedAt = Date.now(); // Update the `modifiedAt` field if the document is modified
+    }
+    next();
+});
 
 
 module.exports = mongoose.model("User", userSchema);

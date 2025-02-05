@@ -13,7 +13,7 @@ const MAIN_URL =
 const Links = () => {
   const [links, setLinks] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [linksPerPage] = useState(5);
+  const [linksPerPage] = useState(7);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState(null);
   const [destination, setDestination] = useState("");

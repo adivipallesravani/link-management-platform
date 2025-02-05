@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "../styles/Analytics.css"
+import "../styles/Analytics.css";
 
 const MAIN_URL =
   process.env.NODE_ENV === "development"
@@ -13,7 +13,7 @@ const Analytics = () => {
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 5; // Set items per page to 5
+  const limit = 7; // Set items per page to 7
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -68,17 +68,8 @@ const Analytics = () => {
               analyticsData.map((data) => (
                 <tr key={data._id}>
                   <td>{new Date(data.timestamp).toLocaleString()}</td>
-                  <td>
-                    <a href={data.originalLink} className="text-blue-500" target="_blank" rel="noopener noreferrer">
-                      {data.originalLink}
-                    </a>
-                  </td>
-                  <td>
-                    <a href={`${MAIN_URL}/api/${data.shortLink}`} className="text-blue-500" target="_blank" rel="noopener noreferrer">
-                      {data.shortLink}
-                    
-                    </a>
-                  </td>
+                  <td>{data.originalLink}</td>
+                  <td>{data.shortLink}</td>
                   <td>{data.ipAddress}</td>
                   <td>{data.device}</td>
                 </tr>

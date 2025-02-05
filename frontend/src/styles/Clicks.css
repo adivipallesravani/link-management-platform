@@ -1,0 +1,21 @@
+.total-clicks {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .total-clicks h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .chart-container {
+    width: 100%;
+    max-width: 800px; /* Limit chart width */
+  }
+  .deviceClicks {
+    margin-top: 90px; 
+    background-color: red;
+  }

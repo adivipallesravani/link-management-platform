@@ -1,13 +1,7 @@
 import React, { useState } from "react";
-import "../styles/Auth.css";
 import { useNavigate } from "react-router-dom";
- 
 import axios from "axios";
-const MAIN_URL =
-  process.env.NODE_ENV === "development"
-    ? process.env.REACT_APP_LOCAL_URL
-    : process.env.REACT_APP_PRODUCTION_URL;
-    console.log(MAIN_URL);
+
 const Register = () => {
     // State to manage form data
     const navigate = useNavigate();
@@ -18,7 +12,6 @@ const Register = () => {
         password: "",
         confirmPassword: "",
     });
-    console.log(formData);
 
     // State to manage error messages
     const [errorMessage, setErrorMessage] = useState("");
@@ -33,7 +26,6 @@ const Register = () => {
         e.preventDefault();
 
         const { name, email, mobile, password, confirmPassword } = formData;
-        console.log(formData);
 
         // Frontend validation
         if (!name || !email || !mobile || !password || !confirmPassword) {
@@ -48,12 +40,13 @@ const Register = () => {
 
         try {
             // Send data to the backend
-            const response = await axios.post(`${MAIN_URL}/auth/register`,formData);
-              console.log(response)
+            const response = await axios.post(`${MAIN_URL}/auth/register`, formData);
+            console.log(response);
+
             // Success response
             alert("User registered successfully!");
-            navigate("/login")
- 
+            navigate("/login");
+
             setErrorMessage(""); // Clear error message
             setFormData({
                 name: "",
@@ -81,16 +74,9 @@ const Register = () => {
                     height: "100vh",
                 }}
             >
-                {/* Add the "Cuvette" logo */}
+                {/* Single Logo Image */}
                 <div className="logo-container">
-                    <span className="logo">
-                        C
-                        <div className="u-logo-container">
-                            <img src="/Vector.png" alt="u logo" className="logo-image" />
-                            <img src="/Vector (1).png" alt="inner logo" className="inner-image" />
-                        </div>
-                        vette
-                    </span>
+                    <img src="download 1.png" alt="Cuvette logo" className="logo-image" />
                 </div>
             </div>
 

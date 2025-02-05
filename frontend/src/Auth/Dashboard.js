@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Dashboard.css";
+import Chart from "../Auth/Clicks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTachometerAlt,
@@ -14,11 +15,12 @@ import Settings from "./Settings";
 import Links from "./Links";
 import Analytics from "./Analytics";
 import { Link } from "react-router-dom";
+
 const MAIN_URL =
   process.env.NODE_ENV === "development"
     ? process.env.REACT_APP_LOCAL_URL
     : process.env.REACT_APP_PRODUCTION_URL;
-    console.log(MAIN_URL);
+console.log(MAIN_URL);
 
 const Dashboard = () => {
   const [greeting, setGreeting] = useState("");
@@ -29,7 +31,8 @@ const Dashboard = () => {
   const [isExpirationEnabled, setIsExpirationEnabled] = useState(false);
   const [links, setLinks] = useState([]);
   const [date, setDate] = useState("");
-  
+  const [searchTerm, setSearchTerm] = useState("");
+
   const storedName = localStorage.getItem("name");
 
   // Function to get initials
@@ -71,84 +74,89 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch the links from the backend on component mount
+  useEffect(() => {
+    const fetchLinks = async () => {
+      try {
+        const response = await fetch(`${MAIN_URL}/api/links`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setLinks(data.links); // Set the fetched links to the state
+        } else {
+          console.error("Error fetching links:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching links:", error);
+      }
+    };
+
+    fetchLinks();
+  }, []);
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
   const toggleExpiration = () =>
     setIsExpirationEnabled((prevState) => !prevState);
 
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+  };
+
   const handleCreateLink = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault(); // Prevent the default form submission
 
-    // Retrieve the values from the form inputs
-    const destination = e.target.destination.value;
-    const remarks = e.target.remarks.value;
-    const expiration = isExpirationEnabled ? e.target.expiration.value : null;
+    // Get form data
+    const formData = new FormData(e.target);
+    const destination = formData.get("destination");
+    const remarks = formData.get("remarks");
+    const expiration = formData.get("expiration");
 
-    // Generate a short link
-    const shortLinkId = `${Math.random().toString(36).substring(7)}`;
-
-    // Prepare the new link object to send to the backend
+    // Construct the link data object
     const newLink = {
       originalLink: destination,
-      shortLinkId,
-      remarks,
-      expiration,
-      clicks: 0, // Ensure clicks are initialized to 0
-      status: !expiration || new Date(expiration) > new Date() ? "Active" : "Inactive",
-      date: new Date().toISOString(),
+      remarks: remarks,
+      expiration: expiration || null, // Expiration can be null if not provided
     };
 
-    // POST request to the backend to create the new link
     try {
-      const response = await fetch(`${MAIN_URL}/api/create`, {
+      // Send a request to your backend to create the new link
+      const response = await fetch(`${MAIN_URL}/api/links/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Authorization header for auth token
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify(newLink),
       });
 
       const data = await response.json();
 
-      // Handle the response
       if (response.ok) {
-        setLinks((prevLinks) => [...prevLinks, data.link]); // Add the new link to the links state
-        closeModal(); // Close the modal after link creation
+        // If the link is created successfully, update the state to add the new link
+        setLinks((prevLinks) => [...prevLinks, data.link]); // Assuming 'data.link' contains the new link data
+        closeModal(); // Close the modal after successful creation
       } else {
-        console.error("Error creating link:", data.message); // Log error if the response is not OK
+        console.error("Error creating link:", data.message);
       }
     } catch (error) {
-      console.error("Error creating link:", error); // Log any errors from the fetch request
+      console.error("Error creating link:", error);
     }
-  };
-
-  const handleSectionChange = (section) => {
-    setActiveSection(section);
   };
 
   return (
     <div className="dashboard-container">
       <div className="sidebar">
         <div className="logo-container">
-          <span className="logo">
-            C
-            <div className="u-logo-container">
-              <img src="/Vector.png" alt="u logo" className="logo-image" />
-              <img
-                src="/Vector (1).png"
-                alt="inner logo"
-                className="inner-image"
-              />
-            </div>
-            vette
-          </span>
+          <img src="download 1.png" alt="Cuvette logo" className="logo-image" />
         </div>
+
         <ul className="menu">
           <li
-            className={`menu-item ${
-              activeSection === "dashboard" ? "active" : ""
-            }`}
+            className={`menu-item ${activeSection === "dashboard" ? "active" : ""}`}
             onClick={() => handleSectionChange("dashboard")}
           >
             <FontAwesomeIcon icon={faTachometerAlt} className="menu-icon" />
@@ -162,18 +170,14 @@ const Dashboard = () => {
             Links
           </li>
           <li
-            className={`menu-item ${
-              activeSection === "analytics" ? "active" : ""
-            }`}
+            className={`menu-item ${activeSection === "analytics" ? "active" : ""}`}
             onClick={() => handleSectionChange("analytics")}
           >
             <FontAwesomeIcon icon={faChartPie} className="menu-icon" />
             Analytics
           </li>
           <li
-            className={`menu-item ${
-              activeSection === "settings" ? "active" : ""
-            }`}
+            className={`menu-item ${activeSection === "settings" ? "active" : ""}`}
             onClick={() => handleSectionChange("settings")}
           >
             <FontAwesomeIcon icon={faCog} className="menu-icon" />
@@ -195,25 +199,42 @@ const Dashboard = () => {
               </span>
               {greeting}, {storedName}
             </span>
-            <div className="date">{date}</div>{" "}
-            {/* Date directly below the greeting */}
+            <div className="date">{date}</div>
           </div>
           <div className="header-actions">
             <button className="create-btn" onClick={openModal}>
               + Create new
             </button>
             <div className="search-container">
-              <FontAwesomeIcon icon={faSearch} className="search-icon" />
-              <input
-                type="text"
-                className="search"
-                placeholder="Search by remarks"
-              />
+              <div className="search-wrapper">
+                <FontAwesomeIcon icon={faSearch} className="search-icon" />
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Search by remarks"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)} // Update state on change
+                />
+              </div>
             </div>
+
             <div className="profile-circle">{initials}</div>
           </div>
         </div>
 
+        {activeSection === "dashboard" && (
+          <div className="total-clicks">
+            <Chart activeSection={activeSection} />
+          </div>
+        )}
+
+        {activeSection === "links" && (
+          <Links links={links} setLinks={setLinks} searchTerm={searchTerm} />
+        )}
+        {activeSection === "analytics" && <Analytics links={links} />}
+        {activeSection === "settings" && <Settings />}
+
+        {/* Modal for creating a new item */}
         {isModalOpen && (
           <div className="modal-overlay">
             <div className="modal">
@@ -259,33 +280,6 @@ const Dashboard = () => {
             </div>
           </div>
         )}
-
-        {activeSection === "dashboard" && (
-          <div className="total-clicks">
-            <h2>Total Clicks</h2>
-            <div className="click-number-container">
-              <span className="click-number">
-                {links && Array.isArray(links) && links.length > 0 ? (
-                  <>
-                    <pre>{JSON.stringify(links, null, 2)}</pre>{" "}
-                    {/* Log links for debugging */}
-                    <span className="click-number">
-                      {links.reduce((acc, link) => acc + (link.clicks || 0), 0)}
-                    </span>
-                  </>
-                ) : (
-                  <span className="click-number">0</span>
-                )}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {activeSection === "links" && (
-          <Links links={links} setLinks={setLinks} />
-        )}
-        {activeSection === "analytics" && <Analytics links={links} />}
-        {activeSection === "settings" && <Settings />}
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ const authenticate = require("./middleware/authMiddleware");
 const bodyParser = require("body-parser");
 const Analytics=require("./models/analytics")
 const Link = require("./models/storingLink");
+const User = require("./models/user"); 
 
 
 dotenv.config();
@@ -30,6 +31,54 @@ app.use(express.json());
 
 app.use("/auth", userRoutes);
 app.use("/api", linkRoutes);
+app.options("*", cors(corsOptions));
+
+
+
+
+app.get("/user-details", authenticate, async (req, res) => {
+  console.log("Authenticated user:", req.user); // Check if user is attached to req.user
+  try {
+      const user = await User.findById(req.user.userId); // Fetch user using ID from token
+      if (!user) {
+          return res.status(404).json({ message: "User not found!" });
+      }
+      res.status(200).json(user);
+  } catch (error) {
+      console.error("Error fetching user:", error); // Log error to debug
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+
+// PUT /api/links/:shortLinkId - Update the link with the given shortLinkId
+app.put("/links/:shortLinkId", authenticate, async (req, res) => {
+  const { shortLinkId } = req.params;  // Extract shortLinkId from the request params
+  const { originalLink, expiration, remarks } = req.body;  // Data to update
+
+  try {
+      // Find the link by shortLinkId
+      const link = await Link.findOne({ shortLinkId });
+
+      if (!link) {
+          return res.status(404).json({ message: "Link not found" }); // If no link found, return error
+      }
+
+      // Update the link fields if provided in the request body
+      link.originalLink = originalLink || link.originalLink;
+      link.expiration = expiration || link.expiration;
+      link.remarks = remarks || link.remarks;
+
+      // Save the updated link
+      const updatedLink = await link.save();
+
+      return res.status(200).json(updatedLink); // Return the updated link as the response
+  } catch (error) {
+      console.error("Error updating link:", error);
+      return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 // Get all analytics for a specific user (filtered by userId)
 app.get("/analytics", authenticate, async (req, res) => {
@@ -101,6 +150,8 @@ app.get("/analytics", authenticate, async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 });
+
+
 
 
 

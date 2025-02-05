@@ -102,34 +102,34 @@ const createShortLink = async (req, res) => {
 
 
 // Delete a link
+
 const deleteLink = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid link ID" });
-        }
+  try {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid link ID" });
+      }
 
-        const link = await Link.findById(id);
+      const link = await Link.findById(id);
 
-        if (!link) {
-            return res.status(404).json({ message: "Link not found" });
-        }
+      if (!link) {
+          return res.status(404).json({ message: "Link not found" });
+      }
 
-        // Ensure the authenticated user owns the link
-        if (link.userId.toString() !== req.user.userId) {
-            return res.status(403).json({ message: "Unauthorized to delete this link" });
-        }
+      // Ensure the authenticated user owns the link
+      if (link.userId.toString() !== req.user.userId) {
+          return res.status(403).json({ message: "Unauthorized to delete this link" });
+      }
 
-        await Link.findByIdAndDelete(id);
+      await Link.findByIdAndDelete(id);
 
-        res.json({ message: "Link deleted successfully" });
-    } catch (error) {
-        console.error("Error deleting link:", error);
-        res.status(500).json({ message: "Error deleting link" });
-    }
+      res.json({ message: "Link deleted successfully" });
+  } catch (error) {
+      console.error("Error deleting link:", error);
+      res.status(500).json({ message: "Error deleting link" });
+  }
 };
-
 
 
 module.exports = {
