@@ -14,7 +14,7 @@ Overview
 
 This is a web application that allows users to create, manage, and analyze shortened URLs. The platform includes advanced link distribution, analytics, and account management features.
 
-Live Demo:-link-management-platform-frontend.vercel.app
+Live Demo:-https://link-management-platform-frontend.vercel.app/register
 
 Credentials:-email:xyz@gmail.com,password:xyz123
 
